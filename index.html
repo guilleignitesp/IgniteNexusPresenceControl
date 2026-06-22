@@ -37,19 +37,25 @@ CREATE POLICY "profiles_insert_own" ON profiles FOR INSERT WITH CHECK (auth.uid(
 -- 3. Los trabajadores pueden actualizar su propio perfil.
 CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE USING (auth.uid() = id);
 
--- 4. Los administradores pueden ver y hacer todo en profiles.
-CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+-- 4. Crear una función SECURITY DEFINER para evitar recursión infinita al validar el rol de administrador.
+CREATE OR REPLACE FUNCTION public.es_admin()
+RETURNS boolean SECURITY DEFINER AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5. Los administradores pueden ver y gestionar todos los perfiles de la tabla.
+CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (public.es_admin());
 
 -- Políticas para la tabla clock_records:
 -- 1. Cada trabajador puede ver e insertar sus propios registros.
 CREATE POLICY "worker_own" ON clock_records FOR ALL USING (auth.uid() = user_id);
 
 -- 2. Los administradores pueden ver y gestionar todos los registros de fichajes.
-CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
 
 -- Habilitar la inserción pública al crear usuarios si es necesario, o depender de la inserción desde la app.
 -- ==========================================
