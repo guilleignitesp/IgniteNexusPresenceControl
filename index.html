@@ -1288,7 +1288,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
     // ----------------------------------------------------
     // 4. INICIALIZACIÓN CLIENTE SUPABASE & FLUJO AUTH
     // ----------------------------------------------------
-    let supabase = null;
+    let supabaseClient = null;
     let currentUser = null;
     let currentProfile = null;
 
@@ -1296,7 +1296,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
       // 1. Inicializar cliente Supabase usando las credenciales del config
       if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
         try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           setupAuthListener();
         } catch (err) {
           console.error("Error al inicializar cliente Supabase:", err);
@@ -1334,7 +1334,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
 
     function setupAuthListener() {
       // Escuchar cambios de estado en la sesión de Supabase Auth
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (session && session.user) {
           currentUser = session.user;
           document.getElementById('login-view').style.display = 'none';
@@ -1438,7 +1438,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
       submitBtn.disabled = true;
       submitBtn.textContent = 'Accediendo...';
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: email,
         password: pass
       });
@@ -1460,7 +1460,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
     }
 
     async function handleLogout() {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabaseClient.auth.signOut();
       if (error) console.error("Error al salir de la sesión:", error);
     }
 
@@ -1476,7 +1476,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
         return;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.href
       });
 
