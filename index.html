@@ -1292,7 +1292,7 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
     let currentUser = null;
     let currentProfile = null;
 
-    window.addEventListener('DOMContentLoaded', () => {
+    function initApp() {
       // 1. Inicializar cliente Supabase usando las credenciales del config
       if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
         try {
@@ -1308,7 +1308,13 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (
         hideSplash();
         showLoginError("Variables SUPABASE_URL o SUPABASE_ANON_KEY no definidas. Edita supabase-config.js.");
       }
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
 
     function hideSplash() {
       const splash = document.getElementById('splash-loading');
