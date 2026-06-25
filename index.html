@@ -2,18 +2,15 @@
 INSTRUCCIONES DE DESPLIEGUE:
 1. Crea un proyecto en supabase.com (gratis).
 2. Ve al Editor SQL de tu proyecto Supabase y ejecuta el siguiente script de inicialización:
-
 -- ==========================================
 -- SQL DE INICIALIZACIÓN (Copia y ejecuta en Supabase SQL Editor)
 -- ==========================================
-
 -- Tabla de trabajadores (se crean via Supabase Auth + esta tabla de perfil)
 CREATE TABLE profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text NOT NULL,
   role text DEFAULT 'worker' -- 'worker' | 'admin'
 );
-
 -- Tabla de fichajes
 CREATE TABLE clock_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,21 +19,16 @@ CREATE TABLE clock_records (
   timestamp timestamptz DEFAULT now(),
   note text
 );
-
 -- RLS (Row Level Security)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clock_records ENABLE ROW LEVEL SECURITY;
-
 -- Políticas para la tabla profiles:
 -- 1. Los trabajadores pueden leer su propio perfil.
 CREATE POLICY "profiles_read_own" ON profiles FOR SELECT USING (auth.uid() = id);
-
 -- 2. Los trabajadores pueden insertar su propio perfil en su primer login.
 CREATE POLICY "profiles_insert_own" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-
 -- 3. Los trabajadores pueden actualizar su propio perfil.
 CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE USING (auth.uid() = id);
-
 -- 4. Crear una función SECURITY DEFINER para evitar recursión infinita al validar el rol de administrador.
 CREATE OR REPLACE FUNCTION public.es_admin()
 RETURNS boolean SECURITY DEFINER AS $$
@@ -46,20 +38,15 @@ BEGIN
   );
 END;
 $$ LANGUAGE plpgsql;
-
 -- 5. Los administradores pueden ver y gestionar todos los perfiles de la tabla.
 CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (public.es_admin());
-
 -- Políticas para la tabla clock_records:
 -- 1. Cada trabajador puede ver e insertar sus propios registros.
 CREATE POLICY "worker_own" ON clock_records FOR ALL USING (auth.uid() = user_id);
-
 -- 2. Los administradores pueden ver y gestionar todos los registros de fichajes.
 CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
-
 -- Habilitar la inserción pública al crear usuarios si es necesario, o depender de la inserción desde la app.
 -- ==========================================
-
 3. Crea los 15 usuarios desde Supabase > Authentication > Users (email + password).
 4. Asigna el rol de administrador al usuario que desees ejecutando en SQL Editor:
    UPDATE profiles SET role='admin' WHERE id='UUID_DEL_ADMINISTRADOR';
@@ -68,7 +55,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
 7. Conecta tu repositorio en vercel.com y despliega de manera automática en 30 segundos.
 8. ¡Listo! Tendrás tu URL pública segura (HTTPS), gratis y 100% funcional.
 -->
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -86,7 +72,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
   
   <!-- Archivo de configuración separado -->
   <script src="supabase-config.js"></script>
-
   <style>
     /* VARIABLES Y DISEÑO SISTEMA MétodoIgniteNexus */
     :root {
@@ -103,7 +88,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       --shadow-hover: 0 15px 45px rgba(62,111,168,0.15), 0 4px 15px rgba(62,111,168,0.08);
       --glass-border: rgba(124, 184, 245, 0.15);
     }
-
     /* MODO OSCURO AUTOMÁTICO */
     body.dark-theme {
       --warm:      #0f172a;
@@ -115,13 +99,11 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       --shadow-hover: 0 15px 45px rgba(0, 0, 0, 0.45), 0 4px 15px rgba(0, 0, 0, 0.25);
       --glass-border: rgba(147, 197, 253, 0.1);
     }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-
     body {
       background-color: var(--warm);
       color: var(--text);
@@ -132,7 +114,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       overflow-x: hidden;
       transition: background-color 0.3s, color 0.3s;
     }
-
     /* BARRA DE PROGRESO HUD DE MARCA REGISTRADA */
     #progress-bar {
       position: fixed;
@@ -143,7 +124,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       width: 100%;
       z-index: 9999;
     }
-
     /* ELEMENTOS DE AMBIENTACIÓN */
     #particle-canvas {
       position: fixed;
@@ -155,7 +135,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       pointer-events: none;
       opacity: 0.5;
     }
-
     .ambient-glow {
       position: fixed;
       top: 0;
@@ -167,11 +146,9 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       pointer-events: none;
       transition: background 0.3s;
     }
-
     body.dark-theme .ambient-glow {
       background: radial-gradient(circle at 50% 50%, rgba(251,176,59,0.04) 0%, rgba(15,23,42,0) 70%);
     }
-
     .blur-circle-blue {
       position: fixed;
       top: -100px;
@@ -185,7 +162,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       z-index: 2;
       pointer-events: none;
     }
-
     .blur-circle-orange {
       position: fixed;
       bottom: -150px;
@@ -199,7 +175,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       z-index: 2;
       pointer-events: none;
     }
-
     /* NAVBAR DE LA APLICACIÓN */
     .navbar {
       position: fixed;
@@ -218,41 +193,34 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       z-index: 100;
       transition: background 0.3s, border-color 0.3s;
     }
-
     body.dark-theme .navbar {
       background: rgba(15, 23, 42, 0.6);
     }
-
     .nav-logo {
       display: flex;
       align-items: center;
       text-decoration: none;
       z-index: 101;
     }
-
     .nav-user {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-
     .user-info-text {
       text-align: right;
       font-size: 13px;
     }
-
     .user-name {
       font-weight: 800;
       color: var(--blue-dark);
     }
-
     .user-role {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       opacity: 0.7;
     }
-
     .btn-secondary {
       background: rgba(62,111,168,0.1);
       color: var(--blue-dark);
@@ -268,27 +236,22 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       gap: 8px;
       font-size: 13px;
     }
-
     .btn-secondary:hover {
       background: rgba(62,111,168,0.18);
       transform: translateY(-2px);
     }
-
     body.dark-theme .btn-secondary {
       background: rgba(147, 197, 253, 0.1);
       border: 1px solid rgba(147, 197, 253, 0.15);
     }
-
     .btn-admin {
       background: rgba(37, 150, 190, 0.1);
       color: var(--cta);
       border: 1px solid rgba(37, 150, 190, 0.15);
     }
-
     .btn-admin:hover {
       background: rgba(37, 150, 190, 0.18);
     }
-
     /* CONTENEDOR PRINCIPAL */
     .main-wrapper {
       min-height: 100vh;
@@ -301,7 +264,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       z-index: 10;
       box-sizing: border-box;
     }
-
     .container {
       width: 100%;
       max-width: 750px;
@@ -312,14 +274,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       transform: translateY(25px);
       animation: fadeInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
-
     @keyframes fadeInUp {
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-
     /* CARDS Y SUPERFICIES */
     .card {
       background: var(--card-a);
@@ -333,7 +293,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
-
     .card::before {
       content: '';
       position: absolute;
@@ -342,16 +301,13 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       opacity: 0;
       transition: opacity 0.3s;
     }
-
     .card:hover {
       box-shadow: var(--shadow-hover);
       transform: translateY(-4px);
     }
-
     .card:hover::before {
       opacity: 1;
     }
-
     /* CORNER VISORS CORPORATIVAS */
     .visor-corner {
       position: absolute;
@@ -379,7 +335,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       border-bottom: 2.2px solid var(--blue-main);
       border-right: 2.2px solid var(--blue-main);
     }
-
     /* TEXTOS Y CABECERAS */
     .section-title {
       font-family: 'Fraunces', serif;
@@ -389,7 +344,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       color: var(--blue-dark);
       margin: 0 0 6px 0;
     }
-
     .section-subtitle {
       font-family: 'Figtree', sans-serif;
       font-weight: 400;
@@ -398,7 +352,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       opacity: 0.7;
       margin: 0;
     }
-
     .welcome-tag {
       background: rgba(62,111,168,0.1);
       color: var(--blue-dark);
@@ -411,7 +364,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       letter-spacing: 1px;
       display: inline-block;
     }
-
     /* RELOJ EN TIEMPO REAL */
     .clock-display {
       font-family: 'Fraunces', serif;
@@ -423,7 +375,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       letter-spacing: -1px;
       animation: clockPulse 1.2s infinite alternate ease-in-out;
     }
-
     .date-display {
       font-family: 'Figtree', sans-serif;
       font-size: 16px;
@@ -433,7 +384,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       margin-top: 8px;
       text-transform: capitalize;
     }
-
     @keyframes clockPulse {
       from {
         opacity: 0.88;
@@ -444,7 +394,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         transform: scale(1.01);
       }
     }
-
     /* BOTÓN FICHAR PRINCIPAL */
     .clock-btn-main {
       width: 210px;
@@ -464,7 +413,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       position: relative;
       user-select: none;
     }
-
     .clock-btn-main::after {
       content: '';
       position: absolute;
@@ -475,42 +423,35 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       animation: rotateDashed 25s linear infinite;
       pointer-events: none;
     }
-
     @keyframes rotateDashed {
       to {
         transform: rotate(360deg);
       }
     }
-
     .clock-btn-main.btn-in {
       background: var(--accent);
       color: #2F3A4A;
       box-shadow: 0 10px 30px rgba(251, 176, 59, 0.35);
     }
-
     .clock-btn-main.btn-in:hover {
       transform: translateY(-4px) scale(1.05);
       box-shadow: 0 15px 40px rgba(251, 176, 59, 0.5);
     }
-
     .clock-btn-main.btn-out {
       background: var(--cta);
       color: #ffffff;
       box-shadow: 0 10px 30px rgba(37, 150, 190, 0.35);
     }
-
     .clock-btn-main.btn-out:hover {
       transform: translateY(-4px) scale(1.05);
       box-shadow: 0 15px 40px rgba(37, 150, 190, 0.5);
     }
-
     .clock-btn-main:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none !important;
       box-shadow: none !important;
     }
-
     .status-desc {
       font-family: 'Figtree', sans-serif;
       font-size: 14px;
@@ -519,7 +460,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       color: var(--text);
       opacity: 0.8;
     }
-
     /* FORMULARIOS E INPUTS */
     .input-group {
       margin-bottom: 20px;
@@ -528,7 +468,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       gap: 8px;
       text-align: left;
     }
-
     .input-group label {
       font-family: 'Figtree', sans-serif;
       font-weight: 600;
@@ -537,7 +476,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       text-transform: uppercase;
       letter-spacing: 0.8px;
     }
-
     .input-group input, .input-group select {
       font-family: 'Figtree', sans-serif;
       font-size: 15px;
@@ -549,13 +487,11 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       outline: none;
       transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     }
-
     .input-group input:focus, .input-group select:focus {
       border-color: var(--cta);
       box-shadow: 0 0 0 3px rgba(37, 150, 190, 0.15);
       background: var(--card-a);
     }
-
     .btn-primary {
       width: 100%;
       padding: 14px;
@@ -570,19 +506,16 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
       box-shadow: 0 4px 12px rgba(37, 150, 190, 0.2);
     }
-
     .btn-primary:hover {
       background: #1d7ba3;
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(37, 150, 190, 0.35);
     }
-
     .btn-primary:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none !important;
     }
-
     .forgot-link {
       font-family: 'Figtree', sans-serif;
       font-size: 13px;
@@ -591,12 +524,10 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       text-decoration: none;
       transition: color 0.3s;
     }
-
     .forgot-link:hover {
       color: var(--blue-dark);
       text-decoration: underline;
     }
-
     .error-message {
       background: rgba(239, 68, 68, 0.08);
       color: #ef4444;
@@ -610,13 +541,11 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       text-align: center;
       animation: shake 0.4s ease-in-out;
     }
-
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-4px); }
       75% { transform: translateX(4px); }
     }
-
     /* TABLAS DE DATOS */
     .table-container {
       overflow-x: auto;
@@ -624,7 +553,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       border-radius: 12px;
       border: 1px solid var(--glass-border);
     }
-
     .data-table {
       width: 100%;
       border-collapse: collapse;
@@ -632,7 +560,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       font-family: 'Figtree', sans-serif;
       font-size: 14px;
     }
-
     .data-table th {
       background: var(--card-b);
       color: var(--blue-dark);
@@ -643,18 +570,15 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       padding: 14px 16px;
       border-bottom: 2px solid var(--glass-border);
     }
-
     .data-table td {
       padding: 14px 16px;
       border-bottom: 1px solid var(--glass-border);
       color: var(--text);
       vertical-align: middle;
     }
-
     .data-table tr:last-child td {
       border-bottom: none;
     }
-
     .badge {
       display: inline-block;
       padding: 4px 10px;
@@ -665,34 +589,28 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       letter-spacing: 0.5px;
       text-align: center;
     }
-
     .badge.badge-in {
       background: rgba(251, 176, 59, 0.15);
       color: #b45309;
     }
-
     body.dark-theme .badge.badge-in {
       background: rgba(251, 176, 59, 0.2);
       color: #fbbf24;
     }
-
     .badge.badge-out {
       background: rgba(37, 150, 190, 0.15);
       color: #0369a1;
     }
-
     body.dark-theme .badge.badge-out {
       background: rgba(37, 150, 190, 0.2);
       color: #38bdf8;
     }
-
     /* CONFIGURACIÓN Y ESTILOS DEL PANEL ADMIN */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
     }
-
     .stat-card {
       padding: 24px;
       display: flex;
@@ -700,7 +618,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       justify-content: center;
       align-items: flex-start;
     }
-
     .stat-title {
       font-family: 'Figtree', sans-serif;
       font-size: 12px;
@@ -710,7 +627,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       color: var(--blue-dark);
       opacity: 0.8;
     }
-
     .stat-value {
       font-family: 'Fraunces', serif;
       font-style: italic;
@@ -719,14 +635,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       color: var(--cta);
       margin-top: 8px;
     }
-
     .filter-row {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
       align-items: flex-end;
     }
-
     /* TOAST DE NOTIFICACIÓN ANIMADO */
     .toast-container {
       position: fixed;
@@ -739,7 +653,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       width: 90%;
       max-width: 400px;
     }
-
     .toast {
       display: flex;
       align-items: center;
@@ -755,19 +668,15 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       text-align: center;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-
     .toast.toast-in {
       background: linear-gradient(135deg, #10B981, #059669);
     }
-
     .toast.toast-out {
       background: linear-gradient(135deg, var(--cta), #1b7a9e);
     }
-
     .toast-container.show {
       top: 30px;
     }
-
     /* SPLASH DE CARGA INICIAL */
     #splash-loading {
       position: fixed;
@@ -780,17 +689,14 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       z-index: 10000;
       transition: opacity 0.5s, background-color 0.3s;
     }
-
     .splash-logo-pulse {
       font-size: 48px;
       animation: splashPulse 1.2s infinite alternate ease-in-out;
     }
-
     @keyframes splashPulse {
       from { transform: scale(0.9) rotate(-10deg); opacity: 0.8; }
       to { transform: scale(1.1) rotate(10deg); opacity: 1; }
     }
-
     /* RESPONSIVE DESIGN */
     @media (max-width: 768px) {
       .navbar {
@@ -822,16 +728,13 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
   </style>
 </head>
 <body>
-
   <!-- Barra de Progreso HUD -->
   <div id="progress-bar"></div>
-
   <!-- Elementos de Ambientación MétodoIgniteNexus -->
   <canvas id="particle-canvas"></canvas>
   <div class="ambient-glow"></div>
   <div class="blur-circle-blue"></div>
   <div class="blur-circle-orange"></div>
-
   <!-- Splash de Carga Inicial -->
   <div id="splash-loading">
     <div class="splash-logo-pulse">⚡</div>
@@ -842,12 +745,10 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       Cargando Sistema...
     </div>
   </div>
-
   <!-- Toast de Notificaciones -->
   <div id="toast-container" class="toast-container">
     <div id="toast-el" class="toast">✓ Fichaje registrado</div>
   </div>
-
   <!-- Navbar -->
   <nav id="app-navbar" class="navbar" style="display: none;">
     <!-- Logo SVG Oficial Ignite Nexus -->
@@ -873,7 +774,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         <text x="130" y="30" class="t-n">NEXUS</text>
       </svg>
     </a>
-
     <!-- Acciones de Usuario -->
     <div class="nav-user">
       <div class="user-info-text">
@@ -895,7 +795,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       </button>
     </div>
   </nav>
-
   <!-- PANTALLA 1: PANTALLA DE LOGIN -->
   <div id="login-view" class="main-wrapper" style="display: none;">
     <div class="container" style="max-width: 440px;">
@@ -949,7 +848,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       </div>
     </div>
   </div>
-
   <!-- PANTALLA 2: PANTALLA PRINCIPAL — FICHAR (Trabajador) -->
   <div id="worker-view" class="main-wrapper" style="display: none;">
     <div class="container">
@@ -966,13 +864,11 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           <h2 id="worker-name-display" class="section-title" style="font-size: 32px; margin-top: 10px;">¡Hola, Trabajador!</h2>
           <p id="worker-role-display" class="section-subtitle" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; color: var(--blue-dark); margin-top: 4px;"></p>
         </div>
-
         <!-- Reloj en tiempo real -->
         <div style="margin: 30px 0;">
           <div id="realtime-clock" class="clock-display">00:00:00</div>
           <div id="realtime-date" class="date-display">...</div>
         </div>
-
         <!-- Botón de Acción -->
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 30px 0 20px 0;">
           <button id="clock-btn" class="clock-btn-main btn-in" onclick="handleClockClick()">
@@ -980,14 +876,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           </button>
           <div id="clock-status-desc" class="status-desc">Comprobando jornada laboral...</div>
         </div>
-
         <!-- Nota Opcional -->
         <div class="input-group" style="max-width: 420px; margin: 25px auto 0 auto;">
           <label for="clock-note">Añadir nota o comentario opcional</label>
           <input type="text" id="clock-note" placeholder="Ej: Teletrabajo, visita médica, etc." maxlength="150">
         </div>
       </div>
-
       <!-- Historial de Fichajes -->
       <div class="card">
         <div class="visor-corner tl" style="border-color: var(--blue-main);"></div>
@@ -1017,10 +911,8 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           </table>
         </div>
       </div>
-
     </div>
   </div>
-
   <!-- PANTALLA 3: PANEL DE ADMINISTRACIÓN (Solo Administradores) -->
   <div id="admin-view" class="main-wrapper" style="display: none;">
     <div class="container" style="max-width: 900px;">
@@ -1046,7 +938,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           </button>
         </div>
       </div>
-
       <!-- Tarjetas de Estadísticas Rápidas -->
       <div class="stats-grid">
         <div class="card stat-card">
@@ -1062,14 +953,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           <div id="stat-total-workers" class="stat-value">0</div>
         </div>
       </div>
-
       <!-- Sección de Filtros -->
       <div class="card">
         <div style="margin-bottom: 20px;">
           <h3 class="card-title">Filtros de Búsqueda</h3>
           <p class="section-subtitle">Limita los datos de los registros y los informes acumulados</p>
         </div>
-
         <div class="filter-row">
           <div class="input-group" style="flex: 1.2; min-width: 220px; margin-bottom: 0;">
             <label for="filter-worker">Filtrar por Empleado</label>
@@ -1093,14 +982,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           </div>
         </div>
       </div>
-
       <!-- Resumen Acumulado de Horas -->
       <div class="card">
         <div style="margin-bottom: 20px;">
           <h3 class="card-title">Horas Totales Trabajadas</h3>
           <p class="section-subtitle">Suma total de horas de pares Entrada/Salida en base a la búsqueda actual</p>
         </div>
-
         <div class="table-container">
           <table class="data-table">
             <thead>
@@ -1118,14 +1005,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           </table>
         </div>
       </div>
-
       <!-- Historial Global Completo -->
       <div class="card">
         <div style="margin-bottom: 20px;">
           <h3 class="card-title">Registro de Actividad Completo</h3>
           <p class="section-subtitle">Lista de fichajes de toda la plantilla ordenados cronológicamente</p>
         </div>
-
         <div class="table-container">
           <table class="data-table">
             <thead>
@@ -1144,10 +1029,8 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           </table>
         </div>
       </div>
-
     </div>
   </div>
-
   <!-- Pie de Página Corporativo Obligatorio -->
   <footer style="
     position: fixed; bottom: 0; left: 0; right: 0;
@@ -1164,7 +1047,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
   ">
     IGNITE NEXUS · Sistema de Presencia
   </footer>
-
   <!-- LÓGICA DE PROGRAMACIÓN (JS) -->
   <script>
     // ----------------------------------------------------
@@ -1173,15 +1055,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
     const canvas = document.getElementById('particle-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
-
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-
     class Particle {
       constructor() {
         this.x = Math.random() * canvas.width;
@@ -1194,7 +1073,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         const colors = ['#FBB03B', '#7CB8F5', '#2596BE'];
         this.color = colors[Math.floor(Math.random() * colors.length)];
       }
-
       update() {
         this.x += this.vx;
         this.y += this.vy;
@@ -1203,7 +1081,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
         if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
       }
-
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
@@ -1211,14 +1088,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         ctx.fill();
       }
     }
-
     function initParticles() {
       particles = [];
       for (let i = 0; i < 40; i++) {
         particles.push(new Particle());
       }
     }
-
     function animateParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => {
@@ -1227,10 +1102,8 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       });
       requestAnimationFrame(animateParticles);
     }
-
     initParticles();
     animateParticles();
-
     // ----------------------------------------------------
     // 2. DETECCION AUTOMÁTICA DEL TEMA DEL S.O. (DARK/LIGHT)
     // ----------------------------------------------------
@@ -1244,7 +1117,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
     }
     applySystemTheme();
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
-
     // ----------------------------------------------------
     // 3. RELOJ EN TIEMPO REAL DINÁMICO EN ESPAÑOL
     // ----------------------------------------------------
@@ -1273,7 +1145,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
     }
     updateClock(); // Iniciar inmediatamente al cargar
     setInterval(updateClock, 1000);
-
     // Helper para formatear fechas del historial
     function formatDateTime(date) {
       const d = new Date(date);
@@ -1290,14 +1161,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       
       return `${day}/${month}/${year} — ${time}`;
     }
-
     // ----------------------------------------------------
     // 4. INICIALIZACIÓN CLIENTE SUPABASE & FLUJO AUTH
     // ----------------------------------------------------
     let supabaseClient = null;
     let currentUser = null;
     let currentProfile = null;
-
     function initApp() {
       // 1. Inicializar cliente Supabase usando las credenciales del config
       if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
@@ -1315,13 +1184,11 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         showLoginError("Variables SUPABASE_URL o SUPABASE_ANON_KEY no definidas. Edita supabase-config.js.");
       }
     }
-
     if (document.readyState === 'loading') {
       window.addEventListener('DOMContentLoaded', initApp);
     } else {
       initApp();
     }
-
     function hideSplash() {
       const splash = document.getElementById('splash-loading');
       if (splash) {
@@ -1329,7 +1196,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         setTimeout(() => splash.style.display = 'none', 500);
       }
     }
-
     function showLoginError(msg) {
       const errEl = document.getElementById('login-error');
       if (errEl) {
@@ -1337,43 +1203,67 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         errEl.style.display = 'block';
       }
     }
-
+    let authListenerInitialized = false;
+    async function handleAuthStateChange(session) {
+      if (session && session.user) {
+        // Prevenir cargas duplicadas del mismo usuario si ya está inicializado
+        if (currentUser && currentUser.id === session.user.id && authListenerInitialized) {
+          return;
+        }
+        currentUser = session.user;
+        authListenerInitialized = true;
+        document.getElementById('login-view').style.display = 'none';
+        
+        try {
+          currentProfile = await getOrCreateProfile(currentUser);
+          showNavbar(true);
+          await showWorkerView();
+        } catch (e) {
+          console.error("Error al cargar perfil de usuario:", e);
+          showLoginError("Error al cargar el perfil de usuario. Inténtalo de nuevo.");
+          hideSplash();
+          handleLogout();
+        }
+      } else {
+        currentUser = null;
+        currentProfile = null;
+        authListenerInitialized = true;
+        showNavbar(false);
+        
+        document.getElementById('worker-view').style.display = 'none';
+        document.getElementById('admin-view').style.display = 'none';
+        document.getElementById('login-view').style.display = 'flex';
+        
+        hideSplash();
+      }
+    }
     function setupAuthListener() {
       // Escuchar cambios de estado en la sesión de Supabase Auth
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        if (session && session.user) {
-          currentUser = session.user;
-          document.getElementById('login-view').style.display = 'none';
-          
-          try {
-            // Cargar o crear el perfil en profiles
-            currentProfile = await getOrCreateProfile(currentUser);
-            
-            // Configurar cabecera
-            showNavbar(true);
-            
-            // Ir a la vista del trabajador
-            showWorkerView();
-          } catch (e) {
-            console.error("Error al cargar perfil de usuario:", e);
-            showLoginError("Error al cargar el perfil de usuario. Inténtalo de nuevo.");
-            handleLogout();
-          }
+        await handleAuthStateChange(session);
+      });
+      
+      // Comprobación manual inmediata por si el listener tarda o se pierde la restauración
+      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          handleAuthStateChange(session);
         } else {
-          // No hay sesión activa
-          currentUser = null;
-          currentProfile = null;
-          showNavbar(false);
-          
-          document.getElementById('worker-view').style.display = 'none';
-          document.getElementById('admin-view').style.display = 'none';
-          document.getElementById('login-view').style.display = 'flex';
-          
+          // Si no hay sesión activa en caché local, quitamos el splash de inmediato
           hideSplash();
         }
+      }).catch(err => {
+        console.error("Error al comprobar la sesión inicial:", err);
+        hideSplash();
       });
+      // Respaldo de seguridad definitivo: quitar pantalla de carga pasados 4 segundos pase lo que pase
+      setTimeout(() => {
+        const splash = document.getElementById('splash-loading');
+        if (splash && splash.style.display !== 'none') {
+          console.warn("Límite de tiempo de pantalla de carga superado. Forzando ocultación.");
+          hideSplash();
+        }
+      }, 4000);
     }
-
     // Comprobar si existe el perfil en DB. Si no, crearlo automáticamente (resiliencia)
     async function getOrCreateProfile(user) {
       let { data: profile, error } = await supabaseClient
@@ -1381,11 +1271,9 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
-
       if (error) {
-        console.error("Error consultando perfil de base de datos:", error);
+        console.error("Error consultando perfil de base de datos:", error.message, error);
       }
-
       if (!profile) {
         // Generar un nombre por defecto basado en su email
         const emailPrefix = user.email ? user.email.split('@')[0] : 'Trabajador';
@@ -1400,9 +1288,8 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           })
           .select()
           .single();
-
         if (insertError) {
-          console.error("Error al crear automáticamente perfil de usuario:", insertError);
+          console.error("Error al crear automáticamente perfil de usuario:", insertError.message, insertError);
           // Retornamos fallback local si falla RLS por primera vez
           return { id: user.id, full_name: defaultName, role: 'worker' };
         }
@@ -1410,7 +1297,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       }
       return profile;
     }
-
     function showNavbar(show) {
       const navbar = document.getElementById('app-navbar');
       if (show && currentProfile) {
@@ -1429,7 +1315,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         navbar.style.display = 'none';
       }
     }
-
     // ----------------------------------------------------
     // 5. ACCIONES DE AUTENTICACIÓN
     // ----------------------------------------------------
@@ -1448,7 +1333,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         email: email,
         password: pass
       });
-
       if (error) {
         // Traducir algunos errores comunes
         let userMessage = 'Error al iniciar sesión: ' + error.message;
@@ -1464,28 +1348,23 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         submitBtn.textContent = 'Entrar';
       }
     }
-
     async function handleLogout() {
       const { error } = await supabaseClient.auth.signOut();
       if (error) console.error("Error al salir de la sesión:", error);
     }
-
     async function handleForgotPassword(event) {
       event.preventDefault();
       const email = document.getElementById('login-email').value.trim();
       const errorDiv = document.getElementById('login-error');
       
       errorDiv.style.display = 'none';
-
       if (!email) {
         showLoginError('Por favor, escribe tu dirección de correo electrónico corporativo arriba para poder enviar el enlace.');
         return;
       }
-
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.href
       });
-
       if (error) {
         showLoginError('Error al procesar la solicitud: ' + error.message);
       } else {
@@ -1496,7 +1375,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         errorDiv.style.display = 'block';
       }
     }
-
     // ----------------------------------------------------
     // 6. LÓGICA DE LA VISTA TRABAJADOR (FICHAR)
     // ----------------------------------------------------
@@ -1510,12 +1388,16 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       // Reiniciar notas
       document.getElementById('clock-note').value = '';
       
-      // Consultar estado de fichajes e historial
-      await updateClockBtnState();
-      await fetchWorkerHistory(currentUser.id);
-      hideSplash();
+      // Consultar estado de fichajes e historial con manejo robusto de errores
+      try {
+        await updateClockBtnState();
+        await fetchWorkerHistory(currentUser.id);
+      } catch (err) {
+        console.error("Error al cargar estado del trabajador en la vista:", err);
+      } finally {
+        hideSplash();
+      }
     }
-
     async function fetchLastClockRecord(userId) {
       const { data, error } = await supabaseClient
         .from('clock_records')
@@ -1524,14 +1406,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         .order('timestamp', { ascending: false })
         .limit(1)
         .maybeSingle();
-
       if (error) {
-        console.error("Error obteniendo último fichaje:", error);
+        console.error("Error obteniendo último fichaje:", error.message, error);
         return null;
       }
       return data;
     }
-
     async function updateClockBtnState() {
       const btn = document.getElementById('clock-btn');
       const desc = document.getElementById('clock-status-desc');
@@ -1555,7 +1435,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         desc.textContent = 'Jornada activa. Pulsa para registrar tu Salida.';
       }
     }
-
     async function fetchWorkerHistory(userId) {
       const { data, error } = await supabaseClient
         .from('clock_records')
@@ -1563,20 +1442,16 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         .eq('user_id', userId)
         .order('timestamp', { ascending: false })
         .limit(5);
-
       if (error) {
-        console.error("Error cargando historial de fichajes:", error);
+        console.error("Error cargando historial de fichajes:", error.message, error);
         return;
       }
-
       const tbody = document.getElementById('worker-history-body');
       tbody.innerHTML = '';
-
       if (!data || data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; opacity: 0.6; padding: 25px;">No has realizado fichajes todavía.</td></tr>`;
         return;
       }
-
       data.forEach(record => {
         const row = document.createElement('tr');
         
@@ -1603,7 +1478,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         tbody.appendChild(row);
       });
     }
-
     async function handleClockClick() {
       const btn = document.getElementById('clock-btn');
       const desc = document.getElementById('clock-status-desc');
@@ -1625,14 +1499,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         })
         .select()
         .single();
-
       if (error) {
-        console.error("Error al registrar fichaje:", error);
+        console.error("Error al registrar fichaje:", error.message, error);
         desc.textContent = 'Error al registrar el fichaje. Inténtalo de nuevo.';
         btn.disabled = false;
         return;
       }
-
       // Limpiar nota
       noteInput.value = '';
       
@@ -1642,16 +1514,13 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         minute: '2-digit',
         second: '2-digit'
       });
-
       // Mostrar Toast de Confirmación
       const textMsg = type === 'in' ? `✓ Entrada registrada — ${timeStr}` : `✓ Salida registrada — ${timeStr}`;
       showToast(textMsg, type);
-
       // Recargar interfaz
       await updateClockBtnState();
       await fetchWorkerHistory(currentUser.id);
     }
-
     // Helper Toast
     let toastTimeout = null;
     function showToast(message, type) {
@@ -1669,12 +1538,10 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         container.classList.remove('show');
       }, 3000);
     }
-
     // ----------------------------------------------------
     // 7. LÓGICA DEL PANEL DE ADMINISTRACIÓN
     // ----------------------------------------------------
     let cachedAdminRecords = []; // Conservar para exportación / conteos dinámicos
-
     async function showAdminView() {
       if (!currentProfile || currentProfile.role !== 'admin') {
         showToast('Acceso denegado. Se requieren permisos de administración.', 'out');
@@ -1687,27 +1554,22 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       // Reiniciar filtros de interfaz
       document.getElementById('filter-date').value = '';
       document.getElementById('filter-worker').value = 'all';
-
       // Cargar lista de trabajadores y todos los datos
       await loadAdminFilterWorkers();
       await loadAdminData();
     }
-
     // Cargar empleados en dropdown
     async function loadAdminFilterWorkers() {
       const { data, error } = await supabaseClient
         .from('profiles')
         .select('id, full_name')
         .order('full_name', { ascending: true });
-
       if (error) {
-        console.error("Error al cargar lista de perfiles para el filtro admin:", error);
+        console.error("Error al cargar lista de perfiles para el filtro admin:", error.message, error);
         return;
       }
-
       const select = document.getElementById('filter-worker');
       select.innerHTML = '<option value="all">Todos los trabajadores</option>';
-
       data.forEach(worker => {
         const option = document.createElement('option');
         option.value = worker.id;
@@ -1715,7 +1577,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         select.appendChild(option);
       });
     }
-
     async function loadAdminData() {
       const workerVal = document.getElementById('filter-worker').value;
       const dateVal = document.getElementById('filter-date').value;
@@ -1723,7 +1584,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       // Actualizar estado de carga
       document.getElementById('admin-logs-body').innerHTML = `<tr><td colspan="4" style="text-align: center; opacity: 0.6; padding: 25px;">Consultando registros...</td></tr>`;
       document.getElementById('hours-report-body').innerHTML = `<tr><td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">Calculando horas...</td></tr>`;
-
       let query = supabaseClient
         .from('clock_records')
         .select(`
@@ -1738,45 +1598,37 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
           )
         `)
         .order('timestamp', { ascending: false });
-
       if (workerVal !== 'all') {
         query = query.eq('user_id', workerVal);
       }
-
       if (dateVal) {
         // Limitar la consulta a ese día
         const start = `${dateVal}T00:00:00.000Z`;
         const end = `${dateVal}T23:59:59.999Z`;
         query = query.gte('timestamp', start).lte('timestamp', end);
       }
-
       const { data, error } = await query;
       if (error) {
-        console.error("Error obteniendo registros generales:", error);
+        console.error("Error obteniendo registros generales:", error.message, error);
         document.getElementById('admin-logs-body').innerHTML = `<tr><td colspan="4" style="color: #ef4444; text-align: center; padding: 20px;">Error al cargar datos.</td></tr>`;
         return;
       }
-
       cachedAdminRecords = data || [];
       
       renderAdminLogsTable(cachedAdminRecords);
       calculateAndRenderHoursReport(cachedAdminRecords);
       await fetchAndRenderStats(cachedAdminRecords);
     }
-
     function applyFilters() {
       loadAdminData();
     }
-
     function renderAdminLogsTable(records) {
       const tbody = document.getElementById('admin-logs-body');
       tbody.innerHTML = '';
-
       if (records.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; opacity: 0.6; padding: 25px;">No se encontraron registros con los filtros activos.</td></tr>`;
         return;
       }
-
       records.forEach(r => {
         const row = document.createElement('tr');
         
@@ -1800,7 +1652,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         const noteTd = document.createElement('td');
         noteTd.textContent = r.note || '—';
         noteTd.style.opacity = r.note ? '1' : '0.5';
-
         row.appendChild(workerTd);
         row.appendChild(actionTd);
         row.appendChild(dateTd);
@@ -1808,12 +1659,10 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         tbody.appendChild(row);
       });
     }
-
     // Calcula sumatorio de horas trabajadas (timestamp_out - timestamp_in) por empleado
     function calculateAndRenderHoursReport(records) {
       const tbody = document.getElementById('hours-report-body');
       tbody.innerHTML = '';
-
       // Agrupar registros por trabajador
       const grouped = {};
       records.forEach(r => {
@@ -1828,14 +1677,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         }
         grouped[userId].clocks.push(r);
       });
-
       const userIds = Object.keys(grouped);
       
       if (userIds.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">No hay fichajes en el periodo seleccionado para calcular horas.</td></tr>`;
         return;
       }
-
       userIds.forEach(userId => {
         const user = grouped[userId];
         
@@ -1856,14 +1703,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
             }
           }
         });
-
         // Conversión a horas y minutos
         const totalMinutes = Math.floor(totalMs / (1000 * 60));
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
         
         const hoursString = `${hours}h ${minutes}m`;
-
         const row = document.createElement('tr');
         
         const nameTd = document.createElement('td');
@@ -1878,14 +1723,12 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         hoursTd.style.textAlign = 'right';
         hoursTd.style.fontWeight = '800';
         hoursTd.style.color = 'var(--cta)';
-
         row.appendChild(nameTd);
         row.appendChild(countTd);
         row.appendChild(hoursTd);
         tbody.appendChild(row);
       });
     }
-
     // Calcula estadísticas del HUD del Administrador
     async function fetchAndRenderStats(records) {
       // 1. Total trabajadores en la base de datos
@@ -1895,19 +1738,16 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
       
       const totalWorkersVal = countErr ? 15 : (totalCount || 0);
       document.getElementById('stat-total-workers').textContent = totalWorkersVal;
-
       // 2. Fichajes de la jornada de hoy
       const todayString = new Date().toISOString().split('T')[0];
       const todayClocks = records.filter(r => r.timestamp.startsWith(todayString)).length;
       document.getElementById('stat-today-clocks').textContent = todayClocks;
-
       // 3. Personal Fichado 'In' (Jornada activa)
       // Buscamos el último registro general de cada usuario para ver quién está en 'in'
       const { data: latestClocks, error: activeErr } = await supabaseClient
         .from('clock_records')
         .select('user_id, type')
         .order('timestamp', { ascending: false });
-
       if (!activeErr && latestClocks) {
         const statuses = {};
         latestClocks.forEach(c => {
@@ -1921,37 +1761,30 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         document.getElementById('stat-active-workers').textContent = '—';
       }
     }
-
     // Generar archivo CSV en memoria y descargarlo
     function exportToCSV() {
       if (cachedAdminRecords.length === 0) {
         showToast('No hay datos en pantalla para exportar.', 'out');
         return;
       }
-
       // BOM UTF-8 para soporte de acentos en MS Excel
       let csv = '\uFEFF';
       csv += 'Trabajador;Accion;Fecha y Hora;Nota\r\n';
-
       cachedAdminRecords.forEach(r => {
         const name = r.profiles ? r.profiles.full_name : 'Usuario Desconocido';
         const action = r.type === 'in' ? 'Entrada' : 'Salida';
         const dateStr = formatDateTime(r.timestamp);
         const note = r.note || '';
-
         // Escapar comillas dobles y formatear celdas
         const formatCell = (txt) => {
           const escaped = txt.replace(/"/g, '""');
           return `"${escaped}"`;
         };
-
         csv += `${formatCell(name)};${formatCell(action)};${formatCell(dateStr)};${formatCell(note)}\r\n`;
       });
-
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-
       // Nombre personalizado según filtros
       const filterWorker = document.getElementById('filter-worker');
       const filterDate = document.getElementById('filter-date').value;
@@ -1966,7 +1799,6 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
         filename += `_${filterDate}`;
       }
       filename += '.csv';
-
       link.setAttribute('href', url);
       link.setAttribute('download', filename);
       link.style.visibility = 'hidden';
