@@ -1402,18 +1402,29 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
 
     function setupAuthListener() {
       // Escuchar cambios de estado en la sesión de Supabase Auth
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        await handleAuthStateChange(session);
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        // Usar setTimeout para evitar el deadlock durante la inicialización de Supabase,
+        // ya que handleAuthStateChange realiza consultas a la base de datos que requieren
+        // llamar a getSession(), la cual a su vez espera a que initializePromise se resuelva.
+        setTimeout(() => {
+          handleAuthStateChange(session).catch(err => {
+            console.error("Error en handleAuthStateChange (onAuthStateChange):", err);
+          });
+        }, 0);
       });
       
       // Comprobación manual inmediata por si el listener tarda o se pierde la restauración
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          handleAuthStateChange(session);
-        } else {
-          // Si no hay sesión activa en caché local, quitamos el splash de inmediato
-          hideSplash();
-        }
+        setTimeout(() => {
+          if (session) {
+            handleAuthStateChange(session).catch(err => {
+              console.error("Error en handleAuthStateChange (getSession):", err);
+            });
+          } else {
+            // Si no hay sesión activa en caché local, quitamos el splash de inmediato
+            hideSplash();
+          }
+        }, 0);
       }).catch(err => {
         console.error("Error al comprobar la sesión inicial:", err);
         hideSplash();
