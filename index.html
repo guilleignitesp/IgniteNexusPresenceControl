@@ -1324,12 +1324,8 @@ CREATE POLICY "admin_all" ON clock_records FOR ALL USING (public.es_admin());
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: true,
-              lock: {
-                acquire: async () => ({
-                  id: 'no-op',
-                  name: 'no-op',
-                  release: async () => {},
-                }),
+              lock: async (name, acquire) => {
+                return await acquire();
               },
             }
           });
